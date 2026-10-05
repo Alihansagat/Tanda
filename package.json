@@ -1,1 +1,7 @@
-{"name":"jobmatch-ai","version":"0.1.0","private":true,"type":"module","scripts":{"test":"node --test","start":"node server.mjs"}}
+{
+    "name":"jobmatch-ai",
+    "version":"0.1.0",
+    "private":true,"type":"module",
+    "scripts":{"test":"node --test",
+    "start":"node server.mjs"}
+}

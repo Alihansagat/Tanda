@@ -1,8 +1,46 @@
 export const skills = {
- Python:['python','питон'], SQL:['sql','postgresql','mysql'], 'Machine Learning':['machine learning','машинное обучение','машинного обучения'], Pandas:['pandas'], NumPy:['numpy'], 'Scikit-learn':['scikit-learn','sklearn'], PyTorch:['pytorch'], TensorFlow:['tensorflow'], Docker:['docker'], Git:['git','github','gitlab'], FastAPI:['fastapi'], AWS:['aws'], Kubernetes:['kubernetes','k8s'], NLP:['nlp','обработка естественного языка'], Spark:['spark','pyspark'], Airflow:['airflow'], JavaScript:['javascript','js'], TypeScript:['typescript'], React:['react'], 'A/B testing':['a/b','a/b testing','аб-тест'], Tableau:['tableau'], Excel:['excel'], Linux:['linux'], 'Deep Learning':['deep learning','глубокое обучение'], Statistics:['statistics','статистика','статистики'], 'Data visualization':['matplotlib','seaborn','визуализация','visualization']
+ Python:['python','питон'], 
+ SQL:['sql','postgresql','mysql'], 'Machine Learning':['machine learning','машинное обучение','машинного обучения'], 
+ Pandas:['pandas'], 
+ NumPy:['numpy'], 'Scikit-learn':['scikit-learn','sklearn'], 
+ PyTorch:['pytorch'], 
+ TensorFlow:['tensorflow'], 
+ Docker:['docker'], 
+ Git:['git','github','gitlab'], 
+ FastAPI:['fastapi'], 
+ AWS:['aws'], 
+ Kubernetes:['kubernetes','k8s'], 
+ NLP:['nlp','обработка естественного языка'], 
+ Spark:['spark','pyspark'], 
+ Airflow:['airflow'], 
+ JavaScript:['javascript','js'], 
+ TypeScript:['typescript'], 
+ React:['react'], 'A/B testing':['a/b','a/b testing','аб-тест'], 
+ Tableau:['tableau'], 
+ Excel:['excel'], 
+ Linux:['linux'], 'Deep Learning':['deep learning','глубокое обучение'], 
+ Statistics:['statistics','статистика','статистики'], 'Data visualization':['matplotlib','seaborn','визуализация','visualization']
 };
 const stop = new Set('и в на с по для из к от до а но это мы вы он она the a an of to and in for with is are as at or be our your'.split(' '));
-export function tokens(text){return (text.toLowerCase().match(/[\p{L}\p{N}+#]+/gu)||[]).filter(t=>t.length>1&&!stop.has(t));}
-export function extract(text){const normalized=text.toLowerCase();return Object.entries(skills).filter(([,aliases])=>aliases.some(a=>new RegExp('(^|[^\\p{L}\\p{N}])'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=$|[^\\p{L}\\p{N}])','u').test(normalized))).map(([name])=>name);}
-export function cosine(a,b){const docs=[tokens(a),tokens(b)]; const vocab=[...new Set(docs.flat())];const vectors=docs.map(doc=>{const counts=new Map();doc.forEach(t=>counts.set(t,(counts.get(t)||0)+1));return vocab.map(t=>(counts.get(t)||0)/Math.max(doc.length,1)*(Math.log(3/(1+docs.filter(d=>d.includes(t)).length))+1));});let dot=0,aa=0,bb=0;vectors[0].forEach((v,i)=>{dot+=v*vectors[1][i];aa+=v*v;bb+=vectors[1][i]**2;});return aa&&bb?Math.min(1,dot/Math.sqrt(aa*bb)):0;}
-export function match(cv,job){if(typeof cv!=='string'||typeof job!=='string'||tokens(cv).length<5||tokens(job).length<5)throw new Error('Добавьте не менее пяти содержательных слов в каждый текст.');if(cv.length>50000||job.length>50000)throw new Error('Максимум 50 000 символов на документ.');const required=extract(job),found=extract(cv),matched=required.filter(s=>found.includes(s)),missing=required.filter(s=>!found.includes(s)),extra=found.filter(s=>!required.includes(s));const lexical=cosine(cv,job),coverage=required.length?matched.length/required.length:null;return {score:Math.round(100*(coverage===null?lexical:.65*coverage+.35*lexical)),lexical:Math.round(lexical*100),coverage:coverage===null?null:Math.round(coverage*100),required,matched,missing,extra};}
+export function tokens(text){
+    return (text.toLowerCase().match(/[\p{L}\p{N}+#]+/gu)||[]).filter(t=>t.length>1&&!stop.has(t));
+}
+export function extract(text){
+    const normalized=text.toLowerCase();
+    return Object.entries(skills).filter(([,aliases])=>aliases.some(a=>new RegExp('(^|[^\\p{L}\\p{N}])'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?=$|[^\\p{L}\\p{N}])','u').test(normalized))).map(([name])=>name);
+}
+export function cosine(a,b){
+    const docs=[tokens(a),tokens(b)]; 
+    const vocab=[...new Set(docs.flat())];
+    const vectors=docs.map(doc=>{const counts=new Map();doc.forEach(t=>counts.set(t,(counts.get(t)||0)+1));
+    return vocab.map(t=>(counts.get(t)||0)/Math.max(doc.length,1)*(Math.log(3/(1+docs.filter(d=>d.includes(t)).length))+1));});
+    let dot=0,aa=0,bb=0;vectors[0].forEach((v,i)=>{dot+=v*vectors[1][i];aa+=v*v;bb+=vectors[1][i]**2;});
+    return aa&&bb?Math.min(1,dot/Math.sqrt(aa*bb)):0;
+}
+export function match(cv,job){
+    if(typeof cv!=='string'||typeof job!=='string'||tokens(cv).length<5||tokens(job).length<5)throw new Error('Добавьте не менее пяти содержательных слов в каждый текст.');
+    if(cv.length>50000||job.length>50000)throw new Error('Максимум 50 000 символов на документ.');
+    const required=extract(job),found=extract(cv),matched=required.filter(s=>found.includes(s)),missing=required.filter(s=>!found.includes(s)),extra=found.filter(s=>!required.includes(s));
+    const lexical=cosine(cv,job),coverage=required.length?matched.length/required.length:null;
+    return {score:Math.round(100*(coverage===null?lexical:.65*coverage+.35*lexical)),lexical:Math.round(lexical*100),coverage:coverage===null?null:Math.round(coverage*100),required,matched,missing,extra};
+}
